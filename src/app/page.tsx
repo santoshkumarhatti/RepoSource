@@ -35,7 +35,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="container mx-auto px-4 py-6">
+      <header className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
             <Code className="h-8 w-8 text-accent"/>
@@ -48,7 +48,7 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 pt-8 pb-16 md:pb-24">
+        <section className="container mx-auto px-4 pt-2 pb-16 md:pb-24">
           <SoftwareList initialSoftware={software} />
         </section>
       </main>
