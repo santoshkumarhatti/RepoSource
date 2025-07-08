@@ -1,9 +1,10 @@
 import { SoftwareList } from "@/components/tool-list";
 import { db } from "@/lib/firebase";
 import { get, ref } from "firebase/database";
-import type { Software } from "@/types";
+import type { Software, Banner } from "@/types";
 import { Code, Github, Twitter, Linkedin } from "lucide-react";
 import Link from "next/link";
+import { BannerCarousel } from "@/components/banner-carousel";
 
 async function getSoftwareList(): Promise<Software[]> {
   if (!db) {
@@ -30,8 +31,32 @@ async function getSoftwareList(): Promise<Software[]> {
   }
 }
 
+async function getBanners(): Promise<Banner[]> {
+  if (!db) {
+    console.warn("Firebase is not configured. Returning empty list of banners.");
+    return [];
+  }
+  try {
+    const bannersRef = ref(db, "banners");
+    const snapshot = await get(bannersRef);
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const loadedBanners: Banner[] = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key],
+      }));
+      return loadedBanners;
+    }
+    return [];
+  } catch (error) {
+    console.error("Firebase read failed (banners):", error);
+    return [];
+  }
+}
+
 export default async function HomePage() {
   const software = await getSoftwareList();
+  const banners = await getBanners();
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -48,15 +73,8 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-grow">
-        <section className="py-16 md:py-24 text-center">
-          <div className="container mx-auto px-4">
-            <h2 className="text-4xl md:text-6xl font-bold font-headline mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent/80">
-              Discover the Best in Open Source
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-              RepoSource is your curated directory of high-quality, open-source software and applications. Find the perfect tool for your next project.
-            </p>
-          </div>
+        <section className="container mx-auto px-4 py-8 md:py-12">
+           <BannerCarousel banners={banners} />
         </section>
 
         <section className="container mx-auto px-4 pb-16 md:pb-24">

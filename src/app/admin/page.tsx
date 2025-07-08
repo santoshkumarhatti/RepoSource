@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { ref, onValue, remove, set } from "firebase/database";
+import { ref, onValue, remove, set, push } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
-import type { Software } from "@/types";
+import type { Software, Banner } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SoftwareForm, type SoftwareFormValues } from "@/components/admin/tool-form";
-import { PlusCircle, Edit, Trash2, LogOut } from "lucide-react";
+import { BannerForm, type BannerFormValues } from "@/components/admin/banner-form";
+import { PlusCircle, Edit, Trash2, LogOut, ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +27,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Dialog,
@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -43,9 +45,15 @@ export default function AdminPage() {
   const router = useRouter();
 
   const [softwareList, setSoftwareList] = useState<Software[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSoftwareLoading, setIsSoftwareLoading] = useState(true);
   const [editingSoftware, setEditingSoftware] = useState<Software | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSoftwareFormOpen, setIsSoftwareFormOpen] = useState(false);
+  
+  const [bannerList, setBannerList] = useState<Banner[]>([]);
+  const [isBannerLoading, setIsBannerLoading] = useState(true);
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [isBannerFormOpen, setIsBannerFormOpen] = useState(false);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,7 +69,6 @@ export default function AdminPage() {
         router.push("/login");
       }
     });
-
     return () => unsubscribe();
   }, [router]);
 
@@ -71,14 +78,15 @@ export default function AdminPage() {
         toast({
           variant: "destructive",
           title: "Database Error",
-          description: "Firebase is not configured. Please check environment variables.",
+          description: "Firebase is not configured.",
         });
-        setIsLoading(false);
+        setIsSoftwareLoading(false);
+        setIsBannerLoading(false);
         return;
       }
-      const toolsRef = ref(db, "tools/");
-      const unsubscribe = onValue(
-        toolsRef,
+      const softwareRef = ref(db, "tools/");
+      const unsubscribeSoftware = onValue(
+        softwareRef,
         (snapshot) => {
           const data = snapshot.val();
           const loadedSoftware: Software[] = [];
@@ -88,26 +96,40 @@ export default function AdminPage() {
             }
           }
           setSoftwareList(loadedSoftware.reverse());
-          setIsLoading(false);
+          setIsSoftwareLoading(false);
         },
         (error: any) => {
-          console.error("Firebase read error:", error);
-          let description = "An unexpected error occurred. Could not load software.";
-          if (error.message && error.message.includes('PERMISSION_DENIED')) {
-             description = "Permission Denied. Please update your Firebase Realtime Database rules to allow reads for authenticated users.";
-          } else if (error.message) {
-            description = error.message;
-          }
-          toast({
-            variant: "destructive",
-            title: "Database Error",
-            description: description,
-          });
-          setIsLoading(false);
+          console.error("Firebase read error (software):", error);
+          toast({ variant: "destructive", title: "Database Error", description: "Could not load software." });
+          setIsSoftwareLoading(false);
         }
       );
 
-      return () => unsubscribe();
+      const bannersRef = ref(db, "banners/");
+      const unsubscribeBanners = onValue(
+        bannersRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          const loadedBanners: Banner[] = [];
+          if (data) {
+            for (const key in data) {
+              loadedBanners.push({ id: key, ...data[key] });
+            }
+          }
+          setBannerList(loadedBanners.reverse());
+          setIsBannerLoading(false);
+        },
+        (error: any) => {
+          console.error("Firebase read error (banners):", error);
+          toast({ variant: "destructive", title: "Database Error", description: "Could not load banners." });
+          setIsBannerLoading(false);
+        }
+      );
+
+      return () => {
+        unsubscribeSoftware();
+        unsubscribeBanners();
+      };
     }
   }, [user, toast]);
 
@@ -121,17 +143,10 @@ export default function AdminPage() {
   };
   
   const slugify = (name: string) => {
-    return name
-      .toLowerCase()
-      // Remove characters that are not word characters (letters, numbers, underscore), whitespace, or a hyphen.
-      .replace(/[^\w\s-]/g, "")
-      // Replace whitespace, underscores, or repeated hyphens with a single hyphen.
-      .replace(/[\s_-]+/g, "-")
-      // Remove any hyphens from the start or end of the string.
-      .replace(/^-+|-+$/g, "");
+    return name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
   };
 
-  const handleFormSubmit = async (values: SoftwareFormValues) => {
+  const handleSoftwareFormSubmit = async (values: SoftwareFormValues) => {
     if (!db) {
       toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
       return;
@@ -146,189 +161,224 @@ export default function AdminPage() {
       tags: values.tags.split(',').map(tag => tag.trim()).filter(Boolean),
       featured: values.featured || [],
     };
-
     const newId = slugify(values.name);
-
     if (!newId) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Name",
-        description: "Software name must contain valid characters.",
-      });
+      toast({ variant: "destructive", title: "Invalid Name", description: "Software name must contain valid characters." });
       return;
     }
-
     try {
-      if (editingSoftware) {
-        const oldId = editingSoftware.id;
-        // If the name changed, the ID (slug) will change. We need to remove the old entry.
-        if (oldId !== newId) {
-          await remove(ref(db, `tools/${oldId}`));
-        }
-        // Set the data at the new ID. This works for both updating an existing entry
-        // (if name didn't change) and creating a new one (if name changed).
-        await set(ref(db, `tools/${newId}`), softwareData);
-        toast({ title: "Success", description: "Software updated successfully." });
-      } else {
-        // For new software, just set the data at the generated ID.
-        // This will overwrite any existing entry with the same name/ID.
-        const softwareRef = ref(db, `tools/${newId}`);
-        await set(softwareRef, softwareData);
-        toast({ title: "Success", description: "Software added successfully." });
+      if (editingSoftware && editingSoftware.id !== newId) {
+        await remove(ref(db, `tools/${editingSoftware.id}`));
       }
+      await set(ref(db, `tools/${newId}`), softwareData);
+      toast({ title: "Success", description: `Software ${editingSoftware ? 'updated' : 'added'} successfully.` });
       setEditingSoftware(null);
-      setIsFormOpen(false);
+      setIsSoftwareFormOpen(false);
     } catch (error: any) {
       console.error("Failed to save software:", error);
-      let description = "An unexpected error occurred. Please try again.";
-      if (error.message && error.message.includes('PERMISSION_DENIED')) {
-        description = "Permission Denied. Please update your Firebase Realtime Database rules to allow writes for authenticated users.";
-      } else if (error.message) {
-        description = error.message;
-      }
-      toast({
-        variant: "destructive",
-        title: "Error Saving Software",
-        description: description,
-      });
+      toast({ variant: "destructive", title: "Error Saving Software", description: "An unexpected error occurred." });
     }
   };
-
-  const handleDelete = async (softwareId: string) => {
+  
+  const handleBannerFormSubmit = async (values: BannerFormValues) => {
     if (!db) {
       toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
       return;
     }
+    const bannerData = {
+      imageUrl: values.imageUrl,
+      link: values.link,
+    };
+    try {
+      if (editingBanner) {
+        await set(ref(db, `banners/${editingBanner.id}`), bannerData);
+        toast({ title: "Success", description: "Banner updated successfully." });
+      } else {
+        const newBannerRef = push(ref(db, 'banners'));
+        await set(newBannerRef, bannerData);
+        toast({ title: "Success", description: "Banner added successfully." });
+      }
+      setEditingBanner(null);
+      setIsBannerFormOpen(false);
+    } catch (error: any) {
+      console.error("Failed to save banner:", error);
+      toast({ variant: "destructive", title: "Error Saving Banner", description: "An unexpected error occurred." });
+    }
+  };
+
+  const handleDeleteSoftware = async (softwareId: string) => {
+    if (!db) return;
     try {
       await remove(ref(db, `tools/${softwareId}`));
       toast({ title: "Success", description: "Software deleted successfully." });
     } catch (error: any) {
-       console.error("Failed to delete software:", error);
-       let description = "Failed to delete software. Please try again.";
-       if (error.message && error.message.includes('PERMISSION_DENIED')) {
-         description = "Permission Denied. Please update your Firebase Realtime Database rules to allow deletes for authenticated users.";
-       }
-       toast({
-        variant: "destructive",
-        title: "Error Deleting Software",
-        description: description,
-      });
+      toast({ variant: "destructive", title: "Error Deleting Software", description: "Failed to delete software." });
+    }
+  };
+  
+  const handleDeleteBanner = async (bannerId: string) => {
+    if (!db) return;
+    try {
+      await remove(ref(db, `banners/${bannerId}`));
+      toast({ title: "Success", description: "Banner deleted successfully." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error Deleting Banner", description: "Failed to delete banner." });
     }
   };
 
-  const openEditForm = (software: Software) => {
+  const openEditSoftwareForm = (software: Software) => {
     setEditingSoftware(software);
-    setIsFormOpen(true);
+    setIsSoftwareFormOpen(true);
   };
   
-  const openAddForm = () => {
+  const openAddSoftwareForm = () => {
     setEditingSoftware(null);
-    setIsFormOpen(true);
+    setIsSoftwareFormOpen(true);
   }
+  
+  const openEditBannerForm = (banner: Banner) => {
+    setEditingBanner(banner);
+    setIsBannerFormOpen(true);
+  };
+
+  const openAddBannerForm = () => {
+    setEditingBanner(null);
+    setIsBannerFormOpen(true);
+  };
 
   if (authLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="container mx-auto py-10">
-          <div className="flex justify-between items-center mb-6">
-            <Skeleton className="h-10 w-48" />
-            <div className="flex gap-2">
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-28" />
-            </div>
-          </div>
-          <Skeleton className="h-[400px] w-full" />
-        </div>
+        <Skeleton className="h-[600px] w-full max-w-4xl" />
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Panel</h1>
-        <div className="flex gap-2">
-            <Button onClick={openAddForm}>
-                <PlusCircle className="mr-2 h-4 w-4" /> New Software
-            </Button>
-            <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" /> Sign Out
-            </Button>
+        <Button variant="outline" onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" /> Sign Out
+        </Button>
+      </div>
+
+      <div className="mb-12">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Manage Software</h2>
+          <Button onClick={openAddSoftwareForm}>
+              <PlusCircle className="mr-2 h-4 w-4" /> New Software
+          </Button>
+        </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead className="hidden md:table-cell">Category</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isSoftwareLoading ? (
+                <TableRow><TableCell colSpan={3} className="text-center h-24">Loading software...</TableCell></TableRow>
+              ) : softwareList.length > 0 ? (
+                softwareList.map((software) => (
+                  <TableRow key={software.id}>
+                    <TableCell className="font-medium">{software.name}</TableCell>
+                    <TableCell className="hidden md:table-cell">{software.category}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => openEditSoftwareForm(software)}><Edit className="h-4 w-4" /></Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete the software.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteSoftware(software.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow><TableCell colSpan={3} className="text-center h-24">No software found.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Category</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+      <Separator className="my-8" />
+
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Manage Banners</h2>
+          <Button onClick={openAddBannerForm}>
+              <PlusCircle className="mr-2 h-4 w-4" /> New Banner
+          </Button>
+        </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={3} className="text-center h-24">
-                  Loading software...
-                </TableCell>
+                <TableHead>Image</TableHead>
+                <TableHead>Link</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : softwareList.length > 0 ? (
-              softwareList.map((software) => (
-                <TableRow key={software.id} className={editingSoftware?.id === software.id ? "bg-muted/50" : ""}>
-                  <TableCell className="font-medium">{software.name}</TableCell>
-                  <TableCell className="hidden md:table-cell">{software.category}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openEditForm(software)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the software.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(software.id)}>
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center h-24">
-                  No software found. Add one to get started.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {isBannerLoading ? (
+                <TableRow><TableCell colSpan={3} className="text-center h-24">Loading banners...</TableCell></TableRow>
+              ) : bannerList.length > 0 ? (
+                bannerList.map((banner) => (
+                  <TableRow key={banner.id}>
+                    <TableCell>
+                      <img src={banner.imageUrl} alt="Banner" className="h-10 w-auto rounded-md object-cover"/>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={banner.link} target="_blank" className="text-muted-foreground hover:text-foreground flex items-center gap-2">
+                        {banner.link.length > 50 ? `${banner.link.substring(0, 50)}...` : banner.link}
+                        <ExternalLink className="h-4 w-4"/>
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right">
+                       <Button variant="ghost" size="icon" onClick={() => openEditBannerForm(banner)}><Edit className="h-4 w-4" /></Button>
+                       <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete the banner.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteBanner(banner.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow><TableCell colSpan={3} className="text-center h-24">No banners found.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog open={isSoftwareFormOpen} onOpenChange={setIsSoftwareFormOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingSoftware ? "Edit Software" : "Add New Software"}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{editingSoftware ? "Edit Software" : "Add New Software"}</DialogTitle></DialogHeader>
           <SoftwareForm 
-            onSubmit={handleFormSubmit} 
+            onSubmit={handleSoftwareFormSubmit} 
             initialData={editingSoftware} 
+          />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isBannerFormOpen} onOpenChange={setIsBannerFormOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle>{editingBanner ? "Edit Banner" : "Add New Banner"}</DialogTitle></DialogHeader>
+          <BannerForm 
+            onSubmit={handleBannerFormSubmit}
+            initialData={editingBanner}
+            onCancel={() => setIsBannerFormOpen(false)}
           />
         </DialogContent>
       </Dialog>
