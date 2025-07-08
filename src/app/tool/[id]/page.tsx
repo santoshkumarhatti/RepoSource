@@ -24,6 +24,7 @@ async function getSoftware(id: string): Promise<Software | null> {
         id,
         ...data,
         tags: Array.isArray(data.tags) ? data.tags : [],
+        featured: Array.isArray(data.featured) ? data.featured : [],
       };
     }
     return null;

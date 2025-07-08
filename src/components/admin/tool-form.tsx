@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Software } from "@/types";
 
 const formSchema = z.object({
@@ -26,14 +28,17 @@ const formSchema = z.object({
   link: z.string().url({ message: "Please enter a valid URL." }),
   imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   details: z.string().optional(),
+  featured: z.array(z.string()).optional(),
 });
 
-type SoftwareFormValues = z.infer<typeof formSchema>;
+export type SoftwareFormValues = z.infer<typeof formSchema>;
 
 interface SoftwareFormProps {
   initialData: Software | null;
   onSubmit: (values: SoftwareFormValues) => void;
 }
+
+const featuredOptions = ["Top Trending", "Latest", "Hot"];
 
 export function SoftwareForm({ initialData, onSubmit }: SoftwareFormProps) {
   const form = useForm<SoftwareFormValues>({
@@ -46,6 +51,7 @@ export function SoftwareForm({ initialData, onSubmit }: SoftwareFormProps) {
       link: "",
       imageUrl: "",
       details: "",
+      featured: [],
     },
   });
 
@@ -56,6 +62,7 @@ export function SoftwareForm({ initialData, onSubmit }: SoftwareFormProps) {
         tags: initialData.tags.join(", "),
         imageUrl: initialData.imageUrl || "",
         details: initialData.details || "",
+        featured: initialData.featured || [],
       });
     } else {
         form.reset({
@@ -66,6 +73,7 @@ export function SoftwareForm({ initialData, onSubmit }: SoftwareFormProps) {
             link: "",
             imageUrl: "",
             details: "",
+            featured: [],
         });
     }
   }, [initialData, form]);
@@ -170,6 +178,56 @@ export function SoftwareForm({ initialData, onSubmit }: SoftwareFormProps) {
                 <FormMessage />
                 </FormItem>
             )}
+            />
+             <FormField
+              control={form.control}
+              name="featured"
+              render={() => (
+                <FormItem className="md:col-span-2">
+                  <div className="mb-2">
+                    <FormLabel>Featured Lists</FormLabel>
+                    <FormDescription>
+                      Add this software to special lists like "Top Trending".
+                    </FormDescription>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    {featuredOptions.map((item) => (
+                      <FormField
+                        key={item}
+                        control={form.control}
+                        name="featured"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={item}
+                              className="flex flex-row items-center space-x-2 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(item)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...(field.value || []), item])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== item
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {item}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
         </div>
         <div className="flex justify-end gap-2 pt-4">

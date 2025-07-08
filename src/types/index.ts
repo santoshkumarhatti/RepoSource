@@ -7,4 +7,5 @@ export interface Software {
   link: string;
   imageUrl?: string;
   details?: string;
+  featured?: string[];
 }

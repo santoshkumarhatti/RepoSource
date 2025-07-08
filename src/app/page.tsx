@@ -19,6 +19,7 @@ async function getSoftwareList(): Promise<Software[]> {
         id: key,
         ...data[key],
         tags: Array.isArray(data[key].tags) ? data[key].tags : [],
+        featured: Array.isArray(data[key].featured) ? data[key].featured : [],
       }));
       return loadedSoftware.reverse();
     }

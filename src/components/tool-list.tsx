@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SoftwareCard } from './tool-card';
 import { Search } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface SoftwareListProps {
 export function SoftwareList({ initialSoftware }: SoftwareListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedFeatured, setSelectedFeatured] = useState('all');
 
   const categories = useMemo(() => {
     const allCategories = new Set(initialSoftware.map(item => item.category).filter(Boolean));
@@ -28,17 +30,29 @@ export function SoftwareList({ initialSoftware }: SoftwareListProps) {
 
   const filteredSoftware = useMemo(() => {
     return initialSoftware.filter(item => {
+      const matchesFeatured = selectedFeatured === 'all' || (item.featured || []).includes(selectedFeatured);
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       const matchesSearch = searchTerm === '' ||
         item.name.toLowerCase().includes(lowerCaseSearchTerm) ||
         item.description.toLowerCase().includes(lowerCaseSearchTerm);
-      return matchesCategory && matchesSearch;
+      return matchesFeatured && matchesCategory && matchesSearch;
     });
-  }, [initialSoftware, searchTerm, selectedCategory]);
+  }, [initialSoftware, searchTerm, selectedCategory, selectedFeatured]);
 
   return (
     <div>
+      <div className="flex justify-center mb-8">
+        <Tabs value={selectedFeatured} onValueChange={setSelectedFeatured} className="w-full sm:w-auto">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="Top Trending">Trending</TabsTrigger>
+            <TabsTrigger value="Latest">Latest</TabsTrigger>
+            <TabsTrigger value="Hot">Hot</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

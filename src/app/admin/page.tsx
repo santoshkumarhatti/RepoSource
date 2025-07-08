@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SoftwareForm } from "@/components/admin/tool-form";
+import { SoftwareForm, type SoftwareFormValues } from "@/components/admin/tool-form";
 import { PlusCircle, Edit, Trash2, LogOut } from "lucide-react";
 import {
   AlertDialog,
@@ -131,7 +131,7 @@ export default function AdminPage() {
       .replace(/^-+|-+$/g, "");
   };
 
-  const handleFormSubmit = async (values: Omit<Software, "id" | "tags"> & { tags: string }) => {
+  const handleFormSubmit = async (values: SoftwareFormValues) => {
     if (!db) {
       toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
       return;
@@ -144,6 +144,7 @@ export default function AdminPage() {
       imageUrl: values.imageUrl || "",
       details: values.details || "",
       tags: values.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      featured: values.featured || [],
     };
 
     const newId = slugify(values.name);
