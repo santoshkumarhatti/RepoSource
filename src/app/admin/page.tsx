@@ -292,8 +292,8 @@ export default function AdminPage() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-2xl max-h-[90dvh] flex flex-col p-0">
+          <DialogHeader className="p-6 pb-4 border-b">
             <DialogTitle>{editingTool ? "Edit Tool" : "Add New Tool"}</DialogTitle>
           </DialogHeader>
           <ToolForm 
