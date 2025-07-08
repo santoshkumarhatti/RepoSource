@@ -1,5 +1,5 @@
 import { ToolList } from "@/components/tool-list";
-import { db, ensureAnonymousAuth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { get, ref } from "firebase/database";
 import type { Tool } from "@/types";
 import { Github, Code } from "lucide-react";
@@ -11,7 +11,6 @@ async function getTools(): Promise<Tool[]> {
     return [];
   }
   try {
-    await ensureAnonymousAuth();
     const toolsRef = ref(db, "tools");
     const snapshot = await get(toolsRef);
     if (snapshot.exists()) {

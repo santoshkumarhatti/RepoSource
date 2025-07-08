@@ -1,3 +1,5 @@
+"use client";
+
 import type { Tool } from '@/types';
 import {
   Card,
