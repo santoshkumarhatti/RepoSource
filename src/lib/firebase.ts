@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { getAuth, signInAnonymously, type Auth } from "firebase/auth";
 import { getDatabase, type Database } from "firebase/database";
 
 const firebaseConfig = {
@@ -26,5 +26,19 @@ const db: Database | null = app ? getDatabase(app) : null;
 if (!isConfigured) {
   console.warn("Firebase configuration is missing or incomplete. Functionality will be limited.");
 }
+
+let anonymousAuthPromise: Promise<any> | null = null;
+export const ensureAnonymousAuth = () => {
+    if (!auth) {
+        return Promise.reject(new Error("Firebase auth is not configured."));
+    }
+    if (auth.currentUser) {
+        return Promise.resolve(auth.currentUser);
+    }
+    if (!anonymousAuthPromise) {
+        anonymousAuthPromise = signInAnonymously(auth);
+    }
+    return anonymousAuthPromise;
+};
 
 export { app, auth, db };
