@@ -48,7 +48,7 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 pt-16 pb-16 md:pb-24">
+        <section className="container mx-auto px-4 pt-8 pb-16 md:pb-24">
           <SoftwareList initialSoftware={software} />
         </section>
       </main>
