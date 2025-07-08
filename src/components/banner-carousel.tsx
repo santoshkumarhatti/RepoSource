@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -20,7 +21,7 @@ interface BannerCarouselProps {
 
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: false })
+    Autoplay({ delay: 5000, stopOnInteraction: false, stopOnFocusIn: false, stopOnMouseEnter: false })
   );
 
   if (!banners || banners.length === 0) {
@@ -44,7 +45,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               rel="noopener noreferrer"
               draggable={false}
             >
-              <div className="relative aspect-[16/7] w-full overflow-hidden rounded-lg">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg">
                 <Image
                   src={banner.imageUrl}
                   alt="Promotional banner"
