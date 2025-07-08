@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { ref, onValue, remove, set, push, update } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
-import type { Tool } from "@/types";
+import type { Software } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ToolForm } from "@/components/admin/tool-form";
+import { SoftwareForm } from "@/components/admin/tool-form";
 import { PlusCircle, Edit, Trash2, LogOut } from "lucide-react";
 import {
   AlertDialog,
@@ -42,9 +42,9 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
 
-  const [tools, setTools] = useState<Tool[]>([]);
+  const [softwareList, setSoftwareList] = useState<Software[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingTool, setEditingTool] = useState<Tool | null>(null);
+  const [editingSoftware, setEditingSoftware] = useState<Software | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
@@ -81,18 +81,18 @@ export default function AdminPage() {
         toolsRef,
         (snapshot) => {
           const data = snapshot.val();
-          const loadedTools: Tool[] = [];
+          const loadedSoftware: Software[] = [];
           if (data) {
             for (const key in data) {
-              loadedTools.push({ id: key, ...data[key] });
+              loadedSoftware.push({ id: key, ...data[key] });
             }
           }
-          setTools(loadedTools.reverse());
+          setSoftwareList(loadedSoftware.reverse());
           setIsLoading(false);
         },
         (error: any) => {
           console.error("Firebase read error:", error);
-          let description = "An unexpected error occurred. Could not load tools.";
+          let description = "An unexpected error occurred. Could not load software.";
           if (error.message && error.message.includes('PERMISSION_DENIED')) {
              description = "Permission Denied. Please update your Firebase Realtime Database rules to allow reads for authenticated users.";
           } else if (error.message) {
@@ -120,12 +120,12 @@ export default function AdminPage() {
     router.push('/');
   };
 
-  const handleFormSubmit = async (values: Omit<Tool, "id" | "tags"> & { tags: string }) => {
+  const handleFormSubmit = async (values: Omit<Software, "id" | "tags"> & { tags: string }) => {
     if (!db) {
       toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
       return;
     }
-    const toolData = {
+    const softwareData = {
       name: values.name,
       description: values.description,
       category: values.category,
@@ -136,20 +136,20 @@ export default function AdminPage() {
     };
 
     try {
-      if (editingTool) {
-        const toolRef = ref(db, `tools/${editingTool.id}`);
-        await update(toolRef, toolData);
-        toast({ title: "Success", description: "Tool updated successfully." });
+      if (editingSoftware) {
+        const softwareRef = ref(db, `tools/${editingSoftware.id}`);
+        await update(softwareRef, softwareData);
+        toast({ title: "Success", description: "Software updated successfully." });
       } else {
-        const toolsListRef = ref(db, "tools");
-        const newToolRef = push(toolsListRef);
-        await set(newToolRef, toolData);
-        toast({ title: "Success", description: "Tool added successfully." });
+        const softwareListRef = ref(db, "tools");
+        const newSoftwareRef = push(softwareListRef);
+        await set(newSoftwareRef, softwareData);
+        toast({ title: "Success", description: "Software added successfully." });
       }
-      setEditingTool(null);
+      setEditingSoftware(null);
       setIsFormOpen(false);
     } catch (error: any) {
-      console.error("Failed to save tool:", error);
+      console.error("Failed to save software:", error);
       let description = "An unexpected error occurred. Please try again.";
       if (error.message && error.message.includes('PERMISSION_DENIED')) {
         description = "Permission Denied. Please update your Firebase Realtime Database rules to allow writes for authenticated users.";
@@ -158,41 +158,41 @@ export default function AdminPage() {
       }
       toast({
         variant: "destructive",
-        title: "Error Saving Tool",
+        title: "Error Saving Software",
         description: description,
       });
     }
   };
 
-  const handleDelete = async (toolId: string) => {
+  const handleDelete = async (softwareId: string) => {
     if (!db) {
       toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
       return;
     }
     try {
-      await remove(ref(db, `tools/${toolId}`));
-      toast({ title: "Success", description: "Tool deleted successfully." });
+      await remove(ref(db, `tools/${softwareId}`));
+      toast({ title: "Success", description: "Software deleted successfully." });
     } catch (error: any) {
-       console.error("Failed to delete tool:", error);
-       let description = "Failed to delete tool. Please try again.";
+       console.error("Failed to delete software:", error);
+       let description = "Failed to delete software. Please try again.";
        if (error.message && error.message.includes('PERMISSION_DENIED')) {
          description = "Permission Denied. Please update your Firebase Realtime Database rules to allow deletes for authenticated users.";
        }
        toast({
         variant: "destructive",
-        title: "Error Deleting Tool",
+        title: "Error Deleting Software",
         description: description,
       });
     }
   };
 
-  const openEditForm = (tool: Tool) => {
-    setEditingTool(tool);
+  const openEditForm = (software: Software) => {
+    setEditingSoftware(software);
     setIsFormOpen(true);
   };
   
   const openAddForm = () => {
-    setEditingTool(null);
+    setEditingSoftware(null);
     setIsFormOpen(true);
   }
 
@@ -223,7 +223,7 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold">Admin Panel</h1>
         <div className="flex gap-2">
             <Button onClick={openAddForm}>
-                <PlusCircle className="mr-2 h-4 w-4" /> New Tool
+                <PlusCircle className="mr-2 h-4 w-4" /> New Software
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" /> Sign Out
@@ -244,16 +244,16 @@ export default function AdminPage() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center h-24">
-                  Loading tools...
+                  Loading software...
                 </TableCell>
               </TableRow>
-            ) : tools.length > 0 ? (
-              tools.map((tool) => (
-                <TableRow key={tool.id} className={editingTool?.id === tool.id ? "bg-muted/50" : ""}>
-                  <TableCell className="font-medium">{tool.name}</TableCell>
-                  <TableCell className="hidden md:table-cell">{tool.category}</TableCell>
+            ) : softwareList.length > 0 ? (
+              softwareList.map((software) => (
+                <TableRow key={software.id} className={editingSoftware?.id === software.id ? "bg-muted/50" : ""}>
+                  <TableCell className="font-medium">{software.name}</TableCell>
+                  <TableCell className="hidden md:table-cell">{software.category}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openEditForm(tool)}>
+                    <Button variant="ghost" size="icon" onClick={() => openEditForm(software)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
@@ -266,12 +266,12 @@ export default function AdminPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the tool.
+                            This action cannot be undone. This will permanently delete the software.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(tool.id)}>
+                          <AlertDialogAction onClick={() => handleDelete(software.id)}>
                             Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -283,7 +283,7 @@ export default function AdminPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={3} className="text-center h-24">
-                  No tools found. Add one to get started.
+                  No software found. Add one to get started.
                 </TableCell>
               </TableRow>
             )}
@@ -294,11 +294,11 @@ export default function AdminPage() {
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingTool ? "Edit Tool" : "Add New Tool"}</DialogTitle>
+            <DialogTitle>{editingSoftware ? "Edit Software" : "Add New Software"}</DialogTitle>
           </DialogHeader>
-          <ToolForm 
+          <SoftwareForm 
             onSubmit={handleFormSubmit} 
-            initialData={editingTool} 
+            initialData={editingSoftware} 
           />
         </DialogContent>
       </Dialog>

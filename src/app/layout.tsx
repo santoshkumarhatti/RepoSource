@@ -3,8 +3,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "DevHub - Curated Dev Tools",
-  description: "A marketplace of curated open-source tools for developers.",
+  title: "RepoSource - Curated Open Source Software",
+  description: "A collection of curated open-source software and apps.",
 };
 
 export default function RootLayout({

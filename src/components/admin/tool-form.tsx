@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { Tool } from "@/types";
+import type { Software } from "@/types";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -28,15 +28,15 @@ const formSchema = z.object({
   details: z.string().optional(),
 });
 
-type ToolFormValues = z.infer<typeof formSchema>;
+type SoftwareFormValues = z.infer<typeof formSchema>;
 
-interface ToolFormProps {
-  initialData: Tool | null;
-  onSubmit: (values: ToolFormValues) => void;
+interface SoftwareFormProps {
+  initialData: Software | null;
+  onSubmit: (values: SoftwareFormValues) => void;
 }
 
-export function ToolForm({ initialData, onSubmit }: ToolFormProps) {
-  const form = useForm<ToolFormValues>({
+export function SoftwareForm({ initialData, onSubmit }: SoftwareFormProps) {
+  const form = useForm<SoftwareFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -96,7 +96,7 @@ export function ToolForm({ initialData, onSubmit }: ToolFormProps) {
                 <FormItem>
                 <FormLabel>Category</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g., API Testing" {...field} />
+                    <Input placeholder="e.g., API Tools" {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -162,7 +162,7 @@ export function ToolForm({ initialData, onSubmit }: ToolFormProps) {
                 <FormLabel>Details (Optional)</FormLabel>
                 <FormControl>
                     <Textarea 
-                    placeholder="Detailed information about the tool, its history, features, etc. This will be shown on the tool's dedicated page."
+                    placeholder="Detailed information about the software, its history, features, etc. This will be shown on its dedicated page."
                     className="h-32" 
                     {...field}
                     />

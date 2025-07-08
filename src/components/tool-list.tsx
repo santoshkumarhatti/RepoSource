@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import type { Tool } from '@/types';
+import type { Software } from '@/types';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -10,32 +10,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ToolCard } from './tool-card';
+import { SoftwareCard } from './tool-card';
 import { Search } from 'lucide-react';
 
-interface ToolListProps {
-  initialTools: Tool[];
+interface SoftwareListProps {
+  initialSoftware: Software[];
 }
 
-export function ToolList({ initialTools }: ToolListProps) {
+export function SoftwareList({ initialSoftware }: SoftwareListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const categories = useMemo(() => {
-    const allCategories = new Set(initialTools.map(tool => tool.category).filter(Boolean));
+    const allCategories = new Set(initialSoftware.map(item => item.category).filter(Boolean));
     return ['all', ...Array.from(allCategories).sort()];
-  }, [initialTools]);
+  }, [initialSoftware]);
 
-  const filteredTools = useMemo(() => {
-    return initialTools.filter(tool => {
-      const matchesCategory = selectedCategory === 'all' || tool.category === selectedCategory;
+  const filteredSoftware = useMemo(() => {
+    return initialSoftware.filter(item => {
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       const matchesSearch = searchTerm === '' ||
-        tool.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        tool.description.toLowerCase().includes(lowerCaseSearchTerm);
+        item.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+        item.description.toLowerCase().includes(lowerCaseSearchTerm);
       return matchesCategory && matchesSearch;
     });
-  }, [initialTools, searchTerm, selectedCategory]);
+  }, [initialSoftware, searchTerm, selectedCategory]);
 
   return (
     <div>
@@ -44,7 +44,7 @@ export function ToolList({ initialTools }: ToolListProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search tools by name or description..."
+            placeholder="Search software by name or description..."
             className="pl-10 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -64,15 +64,15 @@ export function ToolList({ initialTools }: ToolListProps) {
         </Select>
       </div>
 
-      {filteredTools.length > 0 ? (
+      {filteredSoftware.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTools.map(tool => (
-            <ToolCard key={tool.id} tool={tool} />
+          {filteredSoftware.map(item => (
+            <SoftwareCard key={item.id} software={item} />
           ))}
         </div>
       ) : (
         <div className="text-center py-16 text-card-foreground/50">
-          <h2 className="text-2xl font-semibold">No Tools Found</h2>
+          <h2 className="text-2xl font-semibold">No Software Found</h2>
           <p className="text-muted-foreground mt-2">
             Try adjusting your search or filter settings.
           </p>

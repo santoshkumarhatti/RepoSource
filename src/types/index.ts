@@ -1,4 +1,4 @@
-export interface Tool {
+export interface Software {
   id: string;
   name: string;
   description: string;
