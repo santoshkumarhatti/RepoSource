@@ -4,12 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
-import { type CarouselApi } from "@/components/ui/carousel";
 
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from "@/components/ui/carousel";
 import type { Banner } from "@/types";
 
@@ -18,7 +19,6 @@ interface BannerCarouselProps {
 }
 
 export function BannerCarousel({ banners }: BannerCarouselProps) {
-  const [api, setApi] = React.useState<CarouselApi>();
   const plugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   );
@@ -27,18 +27,10 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     return null;
   }
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (api && !api.clickAllowed()) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
   return (
     <Carousel
-      setApi={setApi}
       plugins={[plugin.current]}
-      className="w-full cursor-grab active:cursor-grabbing"
+      className="w-full"
       onMouseEnter={plugin.current.stop}
       onMouseLeave={plugin.current.reset}
       opts={{
@@ -52,7 +44,6 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               href={banner.link}
               target="_blank"
               rel="noopener noreferrer"
-              onClickCapture={handleClick}
               draggable={false}
             >
               <div className="relative aspect-[16/7] w-full overflow-hidden rounded-lg">
@@ -60,7 +51,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                   src={banner.imageUrl}
                   alt="Promotional banner"
                   fill
-                  className="object-cover pointer-events-none"
+                  className="object-cover"
                   priority={index === 0}
                   sizes="(max-width: 768px) 100vw, 80vw"
                   data-ai-hint="advertisement banner"
@@ -71,6 +62,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           </CarouselItem>
         ))}
       </CarouselContent>
+      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-black/30 text-white border-none hover:bg-black/50" />
+      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-black/30 text-white border-none hover:bg-black/50" />
     </Carousel>
   );
 }
