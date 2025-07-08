@@ -17,7 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Tool } from "@/types";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -34,10 +33,9 @@ type ToolFormValues = z.infer<typeof formSchema>;
 interface ToolFormProps {
   initialData: Tool | null;
   onSubmit: (values: ToolFormValues) => void;
-  onClose: () => void;
 }
 
-export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
+export function ToolForm({ initialData, onSubmit }: ToolFormProps) {
   const form = useForm<ToolFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -76,108 +74,105 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g., Hoppscotch" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g., API Testing" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                        <Textarea placeholder="Open-source alternative to Postman" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Tags (comma-separated)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="API, Developer Tools, REST" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="link"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Link</FormLabel>
-                    <FormControl>
-                        <Input placeholder="https://hoppscotch.io" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                    <FormLabel>Image URL (Optional)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="https://example.com/image.png" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="details"
-                render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                    <FormLabel>Details (Optional)</FormLabel>
-                    <FormControl>
-                        <Textarea 
-                        placeholder="Detailed information about the tool, its history, features, etc. This will be shown on the tool's dedicated page."
-                        className="h-32" 
-                        {...field}
-                        />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
-        </ScrollArea>
-        <div className="flex justify-end gap-2 p-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., Hoppscotch" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., API Testing" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                    <Textarea placeholder="Open-source alternative to Postman" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="tags"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Tags (comma-separated)</FormLabel>
+                <FormControl>
+                    <Input placeholder="API, Developer Tools, REST" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="link"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Link</FormLabel>
+                <FormControl>
+                    <Input placeholder="https://hoppscotch.io" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="imageUrl"
+            render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                <FormLabel>Image URL (Optional)</FormLabel>
+                <FormControl>
+                    <Input placeholder="https://example.com/image.png" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="details"
+            render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                <FormLabel>Details (Optional)</FormLabel>
+                <FormControl>
+                    <Textarea 
+                    placeholder="Detailed information about the tool, its history, features, etc. This will be shown on the tool's dedicated page."
+                    className="h-32" 
+                    {...field}
+                    />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
+        <div className="flex justify-end gap-2 pt-4">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}
             </Button>
