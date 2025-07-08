@@ -124,7 +124,12 @@ export default function AdminPage() {
       return;
     }
     const toolData = {
-      ...values,
+      name: values.name,
+      description: values.description,
+      category: values.category,
+      link: values.link,
+      imageUrl: values.imageUrl || "",
+      details: values.details || "",
       tags: values.tags.split(',').map(tag => tag.trim()).filter(Boolean),
     };
 
@@ -143,9 +148,11 @@ export default function AdminPage() {
       setEditingTool(null);
     } catch (error: any) {
       console.error("Failed to save tool:", error);
-      let description = error.message || "An unexpected error occurred.";
+      let description = "An unexpected error occurred. Please try again.";
       if (error.message && error.message.includes('PERMISSION_DENIED')) {
         description = "Permission Denied. Please update your Firebase Realtime Database rules to allow writes for authenticated users.";
+      } else if (error.message) {
+        description = error.message;
       }
       toast({
         variant: "destructive",
