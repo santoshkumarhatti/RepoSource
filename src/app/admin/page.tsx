@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { ref, onValue, remove, set, push } from "firebase/database";
+import { ref, onValue, remove, set } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
-import type { Software, Banner } from "@/types";
+import type { Software } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -16,8 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SoftwareForm, type SoftwareFormValues } from "@/components/admin/tool-form";
-import { BannerForm, type BannerFormValues } from "@/components/admin/banner-form";
-import { PlusCircle, Edit, Trash2, LogOut, ExternalLink } from "lucide-react";
+import { PlusCircle, Edit, Trash2, LogOut } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,8 +36,6 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -50,11 +47,6 @@ export default function AdminPage() {
   const [editingSoftware, setEditingSoftware] = useState<Software | null>(null);
   const [isSoftwareFormOpen, setIsSoftwareFormOpen] = useState(false);
   
-  const [bannerList, setBannerList] = useState<Banner[]>([]);
-  const [isBannerLoading, setIsBannerLoading] = useState(true);
-  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
-  const [isBannerFormOpen, setIsBannerFormOpen] = useState(false);
-
   const { toast } = useToast();
 
   useEffect(() => {
@@ -82,7 +74,6 @@ export default function AdminPage() {
           description: "Firebase is not configured.",
         });
         setIsSoftwareLoading(false);
-        setIsBannerLoading(false);
         return;
       }
       const softwareRef = ref(db, "tools/");
@@ -106,30 +97,8 @@ export default function AdminPage() {
         }
       );
 
-      const bannersRef = ref(db, "banners/");
-      const unsubscribeBanners = onValue(
-        bannersRef,
-        (snapshot) => {
-          const data = snapshot.val();
-          const loadedBanners: Banner[] = [];
-          if (data) {
-            for (const key in data) {
-              loadedBanners.push({ id: key, ...data[key] });
-            }
-          }
-          setBannerList(loadedBanners.reverse());
-          setIsBannerLoading(false);
-        },
-        (error: any) => {
-          console.error("Firebase read error (banners):", error);
-          toast({ variant: "destructive", title: "Database Error", description: "Could not load banners." });
-          setIsBannerLoading(false);
-        }
-      );
-
       return () => {
         unsubscribeSoftware();
-        unsubscribeBanners();
       };
     }
   }, [user, toast]);
@@ -181,32 +150,6 @@ export default function AdminPage() {
     }
   };
   
-  const handleBannerFormSubmit = async (values: BannerFormValues) => {
-    if (!db) {
-      toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
-      return;
-    }
-    const bannerData = {
-      imageUrl: values.imageUrl,
-      link: values.link,
-    };
-    try {
-      if (editingBanner) {
-        await set(ref(db, `banners/${editingBanner.id}`), bannerData);
-        toast({ title: "Success", description: "Banner updated successfully." });
-      } else {
-        const newBannerRef = push(ref(db, 'banners'));
-        await set(newBannerRef, bannerData);
-        toast({ title: "Success", description: "Banner added successfully." });
-      }
-      setEditingBanner(null);
-      setIsBannerFormOpen(false);
-    } catch (error: any) {
-      console.error("Failed to save banner:", error);
-      toast({ variant: "destructive", title: "Error Saving Banner", description: "An unexpected error occurred." });
-    }
-  };
-
   const handleDeleteSoftware = async (softwareId: string) => {
     if (!db) return;
     try {
@@ -214,16 +157,6 @@ export default function AdminPage() {
       toast({ title: "Success", description: "Software deleted successfully." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error Deleting Software", description: "Failed to delete software." });
-    }
-  };
-  
-  const handleDeleteBanner = async (bannerId: string) => {
-    if (!db) return;
-    try {
-      await remove(ref(db, `banners/${bannerId}`));
-      toast({ title: "Success", description: "Banner deleted successfully." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error Deleting Banner", description: "Failed to delete banner." });
     }
   };
 
@@ -237,16 +170,6 @@ export default function AdminPage() {
     setIsSoftwareFormOpen(true);
   }
   
-  const openEditBannerForm = (banner: Banner) => {
-    setEditingBanner(banner);
-    setIsBannerFormOpen(true);
-  };
-
-  const openAddBannerForm = () => {
-    setEditingBanner(null);
-    setIsBannerFormOpen(true);
-  };
-
   if (authLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -310,76 +233,12 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <Separator className="my-8" />
-
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Manage Banners</h2>
-          <Button onClick={openAddBannerForm}>
-              <PlusCircle className="mr-2 h-4 w-4" /> New Banner
-          </Button>
-        </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Image</TableHead>
-                <TableHead>Link</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isBannerLoading ? (
-                <TableRow><TableCell colSpan={3} className="text-center h-24">Loading banners...</TableCell></TableRow>
-              ) : bannerList.length > 0 ? (
-                bannerList.map((banner) => (
-                  <TableRow key={banner.id}>
-                    <TableCell>
-                      <img src={banner.imageUrl} alt="Banner" className="h-10 w-auto rounded-md object-cover"/>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={banner.link} target="_blank" className="text-muted-foreground hover:text-foreground flex items-center gap-2">
-                        {banner.link.length > 50 ? `${banner.link.substring(0, 50)}...` : banner.link}
-                        <ExternalLink className="h-4 w-4"/>
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-right">
-                       <Button variant="ghost" size="icon" onClick={() => openEditBannerForm(banner)}><Edit className="h-4 w-4" /></Button>
-                       <AlertDialog>
-                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete the banner.</AlertDialogDescription></AlertDialogHeader>
-                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteBanner(banner.id)}>Delete</AlertDialogAction></AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow><TableCell colSpan={3} className="text-center h-24">No banners found.</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
       <Dialog open={isSoftwareFormOpen} onOpenChange={setIsSoftwareFormOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader><DialogTitle>{editingSoftware ? "Edit Software" : "Add New Software"}</DialogTitle></DialogHeader>
           <SoftwareForm 
             onSubmit={handleSoftwareFormSubmit} 
             initialData={editingSoftware} 
-          />
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={isBannerFormOpen} onOpenChange={setIsBannerFormOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>{editingBanner ? "Edit Banner" : "Add New Banner"}</DialogTitle></DialogHeader>
-          <BannerForm 
-            onSubmit={handleBannerFormSubmit}
-            initialData={editingBanner}
-            onCancel={() => setIsBannerFormOpen(false)}
           />
         </DialogContent>
       </Dialog>

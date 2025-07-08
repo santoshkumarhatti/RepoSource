@@ -9,9 +9,3 @@ export interface Software {
   details?: string;
   featured?: string[];
 }
-
-export interface Banner {
-  id: string;
-  imageUrl: string;
-  link: string;
-}
