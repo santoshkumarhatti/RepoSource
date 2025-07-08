@@ -75,7 +75,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
         <FormField
           control={form.control}
           name="name"
@@ -91,12 +91,12 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
         />
         <FormField
           control={form.control}
-          name="description"
+          name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Category</FormLabel>
               <FormControl>
-                <Textarea placeholder="Open-source alternative to Postman" {...field} />
+                <Input placeholder="e.g., API Testing" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,12 +104,12 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
         />
         <FormField
           control={form.control}
-          name="category"
+          name="description"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
+            <FormItem className="md:col-span-2">
+              <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., API Testing" {...field} />
+                <Textarea placeholder="Open-source alternative to Postman" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -145,7 +145,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
           control={form.control}
           name="imageUrl"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="md:col-span-2">
               <FormLabel>Image URL (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="https://example.com/image.png" {...field} />
@@ -158,7 +158,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
           control={form.control}
           name="details"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="md:col-span-2">
               <FormLabel>Details (Optional)</FormLabel>
               <FormControl>
                 <Textarea 
@@ -171,7 +171,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-2 pt-4 md:col-span-2">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save"}

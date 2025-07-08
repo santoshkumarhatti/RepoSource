@@ -15,12 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ToolForm } from "@/components/admin/tool-form";
 import { PlusCircle, Edit, Trash2, LogOut } from "lucide-react";
 import {
@@ -34,6 +28,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -45,6 +45,7 @@ export default function AdminPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -146,6 +147,7 @@ export default function AdminPage() {
         toast({ title: "Success", description: "Tool added successfully." });
       }
       setEditingTool(null);
+      setIsFormOpen(false);
     } catch (error: any) {
       console.error("Failed to save tool:", error);
       let description = "An unexpected error occurred. Please try again.";
@@ -186,10 +188,12 @@ export default function AdminPage() {
 
   const openEditForm = (tool: Tool) => {
     setEditingTool(tool);
+    setIsFormOpen(true);
   };
   
   const openAddForm = () => {
     setEditingTool(null);
+    setIsFormOpen(true);
   }
 
   if (authLoading) {
@@ -203,14 +207,7 @@ export default function AdminPage() {
               <Skeleton className="h-10 w-28" />
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Skeleton className="h-[400px] w-full" />
-            </div>
-            <div className="lg:col-span-1">
-              <Skeleton className="h-[550px] w-full" />
-            </div>
-          </div>
+          <Skeleton className="h-[400px] w-full" />
         </div>
       </div>
     );
@@ -234,84 +231,78 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Category</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center h-24">
-                      Loading tools...
-                    </TableCell>
-                  </TableRow>
-                ) : tools.length > 0 ? (
-                  tools.map((tool) => (
-                    <TableRow key={tool.id} className={editingTool?.id === tool.id ? "bg-muted/50" : ""}>
-                      <TableCell className="font-medium">{tool.name}</TableCell>
-                      <TableCell className="hidden md:table-cell">{tool.category}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => openEditForm(tool)}>
-                          <Edit className="h-4 w-4" />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead className="hidden md:table-cell">Category</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center h-24">
+                  Loading tools...
+                </TableCell>
+              </TableRow>
+            ) : tools.length > 0 ? (
+              tools.map((tool) => (
+                <TableRow key={tool.id} className={editingTool?.id === tool.id ? "bg-muted/50" : ""}>
+                  <TableCell className="font-medium">{tool.name}</TableCell>
+                  <TableCell className="hidden md:table-cell">{tool.category}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => openEditForm(tool)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the tool.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(tool.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center h-24">
-                      No tools found. Add one to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>{editingTool ? "Edit Tool" : "Add New Tool"}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ToolForm 
-                onSubmit={handleFormSubmit} 
-                initialData={editingTool} 
-                onClose={() => setEditingTool(null)}
-              />
-            </CardContent>
-          </Card>
-        </div>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the tool.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(tool.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center h-24">
+                  No tools found. Add one to get started.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingTool ? "Edit Tool" : "Add New Tool"}</DialogTitle>
+          </DialogHeader>
+          <ToolForm 
+            onSubmit={handleFormSubmit} 
+            initialData={editingTool} 
+            onClose={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
