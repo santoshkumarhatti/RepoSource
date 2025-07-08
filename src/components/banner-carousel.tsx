@@ -9,8 +9,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
 import type { Banner } from "@/types";
 
@@ -30,7 +28,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
   return (
     <Carousel
       plugins={[plugin.current]}
-      className="w-full"
+      className="w-full cursor-grab active:cursor-grabbing"
       onMouseEnter={plugin.current.stop}
       onMouseLeave={plugin.current.reset}
       opts={{
@@ -46,7 +44,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                   src={banner.imageUrl}
                   alt="Promotional banner"
                   fill
-                  className="object-cover"
+                  className="object-cover pointer-events-none"
                   priority={index === 0}
                   sizes="(max-width: 768px) 100vw, 80vw"
                   data-ai-hint="advertisement banner"
@@ -56,8 +54,6 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-black/50 hover:bg-black/75 text-white border-none" />
-      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-black/50 hover:bg-black/75 text-white border-none" />
     </Carousel>
   );
 }
