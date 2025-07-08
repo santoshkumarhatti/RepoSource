@@ -48,14 +48,7 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 py-16 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Discover the Best in Open Source</h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-                RepoSource is your curated directory of high-quality, open-source software and applications. Find the perfect tool for your next project.
-            </p>
-        </section>
-
-        <section className="container mx-auto px-4 pb-16 md:pb-24">
+        <section className="container mx-auto px-4 pt-16 pb-16 md:pb-24">
           <SoftwareList initialSoftware={software} />
         </section>
       </main>
