@@ -44,10 +44,11 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                   src={banner.imageUrl}
                   alt="Promotional banner"
                   fill
-                  className="object-cover pointer-events-none"
+                  className="object-cover"
                   priority={index === 0}
                   sizes="(max-width: 768px) 100vw, 80vw"
                   data-ai-hint="advertisement banner"
+                  draggable={false}
                 />
               </div>
             </Link>
