@@ -20,7 +20,7 @@ interface BannerCarouselProps {
 
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
+    Autoplay({ delay: 5000, stopOnInteraction: false })
   );
 
   if (!banners || banners.length === 0) {
@@ -31,8 +31,6 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     <Carousel
       plugins={[plugin.current]}
       className="w-full"
-      onMouseEnter={plugin.current.stop}
-      onMouseLeave={plugin.current.reset}
       opts={{
         loop: true,
       }}
