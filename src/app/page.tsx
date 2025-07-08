@@ -73,11 +73,11 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 py-6">
+        <section className="container mx-auto px-4">
            <BannerCarousel banners={banners} />
         </section>
 
-        <section className="container mx-auto px-4 pb-16 md:pb-24">
+        <section className="container mx-auto px-4 pb-16 md:pb-24 pt-8">
           <SoftwareList initialSoftware={software} />
         </section>
       </main>
