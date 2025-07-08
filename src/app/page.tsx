@@ -2,7 +2,8 @@ import { SoftwareList } from "@/components/tool-list";
 import { db } from "@/lib/firebase";
 import { get, ref } from "firebase/database";
 import type { Software } from "@/types";
-import { Code } from "lucide-react";
+import { Code, Github, Twitter, Linkedin } from "lucide-react";
+import Link from "next/link";
 
 async function getSoftwareList(): Promise<Software[]> {
   if (!db) {
@@ -32,21 +33,65 @@ export default async function HomePage() {
   const software = await getSoftwareList();
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Code className="h-10 w-10 text-accent"/>
-            <h1 className="text-4xl font-bold font-headline">RepoSource</h1>
-          </div>
-          <p className="text-muted-foreground hidden md:block">A collection of curated open-source software and apps.</p>
+          <Link href="/" className="flex items-center gap-3">
+            <Code className="h-8 w-8 text-accent"/>
+            <h1 className="text-2xl font-bold font-headline">RepoSource</h1>
+          </Link>
+          <nav>
+             {/* Future nav links can go here */}
+          </nav>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-8">
-        <SoftwareList initialSoftware={software} />
+
+      <main className="flex-grow">
+        <section className="py-16 md:py-24 text-center">
+          <div className="container mx-auto px-4">
+            <h2 className="text-4xl md:text-6xl font-bold font-headline mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent/80">
+              Discover the Best in Open Source
+            </h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+              RepoSource is your curated directory of high-quality, open-source software and applications. Find the perfect tool for your next project.
+            </p>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 pb-16 md:pb-24">
+          <SoftwareList initialSoftware={software} />
+        </section>
       </main>
-      <footer className="container mx-auto px-4 py-6 text-center text-muted-foreground border-t">
-        <p>Built for the modern developer.</p>
+
+      <footer className="bg-card/50 border-t">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-muted-foreground">
+            <div className="text-center md:text-left">
+              <h4 className="font-bold text-lg text-foreground mb-2">RepoSource</h4>
+              <p className="text-sm">
+                A curated collection of open-source software and apps, built for the modern developer community.
+              </p>
+            </div>
+            <div className="text-center">
+              <h4 className="font-bold text-lg text-foreground mb-2">Navigate</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/" className="hover:text-accent transition-colors">Home</Link></li>
+                <li><Link href="/admin" className="hover:text-accent transition-colors">Admin Login</Link></li>
+              </ul>
+            </div>
+            <div className="text-center md:text-right">
+              <h4 className="font-bold text-lg text-foreground mb-2">Connect</h4>
+              <div className="flex space-x-4 justify-center md:justify-end">
+                <Link href="#" aria-label="Twitter" className="hover:text-accent transition-colors"><Twitter className="h-5 w-5" /></Link>
+                <Link href="#" aria-label="GitHub" className="hover:text-accent transition-colors"><Github className="h-5 w-5" /></Link>
+                <Link href="#" aria-label="LinkedIn" className="hover:text-accent transition-colors"><Linkedin className="h-5 w-5" /></Link>
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} RepoSource. All Rights Reserved.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );
