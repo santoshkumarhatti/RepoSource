@@ -24,6 +24,7 @@ const formSchema = z.object({
   category: z.string().min(2, { message: "Category is required." }),
   tags: z.string().min(1, { message: "At least one tag is required." }),
   link: z.string().url({ message: "Please enter a valid URL." }),
+  imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
 
 type ToolFormValues = z.infer<typeof formSchema>;
@@ -43,6 +44,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
       category: "",
       tags: "",
       link: "",
+      imageUrl: "",
     },
   });
 
@@ -51,6 +53,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
       form.reset({
         ...initialData,
         tags: initialData.tags.join(", "),
+        imageUrl: initialData.imageUrl || "",
       });
     } else {
         form.reset({
@@ -59,6 +62,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
             category: "",
             tags: "",
             link: "",
+            imageUrl: "",
         });
     }
   }, [initialData, form]);
@@ -128,6 +132,19 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
               <FormLabel>Link</FormLabel>
               <FormControl>
                 <Input placeholder="https://hoppscotch.io" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image URL (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="https://example.com/image.png" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

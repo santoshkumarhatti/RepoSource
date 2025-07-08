@@ -5,4 +5,5 @@ export interface Tool {
   category: string;
   tags: string[];
   link: string;
+  imageUrl?: string;
 }

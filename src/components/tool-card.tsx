@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ToolCardProps {
   tool: Tool;
@@ -20,7 +21,16 @@ interface ToolCardProps {
 
 export function ToolCard({ tool }: ToolCardProps) {
   return (
-    <Card className="flex flex-col h-full bg-card hover:shadow-lg hover:shadow-accent/10 transition-shadow duration-300 border-border/50">
+    <Card className="flex flex-col h-full bg-card hover:shadow-lg hover:shadow-accent/10 transition-shadow duration-300 border-border/50 overflow-hidden group">
+      <div className="relative w-full aspect-video bg-muted overflow-hidden">
+        <Image
+          src={tool.imageUrl || "https://placehold.co/600x400.png"}
+          alt={tool.name}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          data-ai-hint="abstract technology"
+        />
+      </div>
       <CardHeader>
         <CardTitle>{tool.name}</CardTitle>
         <CardDescription className="pt-1">{tool.description}</CardDescription>
