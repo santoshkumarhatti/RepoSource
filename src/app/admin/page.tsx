@@ -77,17 +77,31 @@ export default function AdminPage() {
         return;
       }
       const toolsRef = ref(db, "tools/");
-      const unsubscribe = onValue(toolsRef, (snapshot) => {
-        const data = snapshot.val();
-        const loadedTools: Tool[] = [];
-        if (data) {
-          for (const key in data) {
-            loadedTools.push({ id: key, ...data[key] });
+      const unsubscribe = onValue(
+        toolsRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          const loadedTools: Tool[] = [];
+          if (data) {
+            for (const key in data) {
+              loadedTools.push({ id: key, ...data[key] });
+            }
           }
+          setTools(loadedTools.reverse());
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error("Firebase read error:", error);
+          toast({
+            variant: "destructive",
+            title: "Database Error",
+            description:
+              error.message ||
+              "Could not load tools. Check your database rules and configuration.",
+          });
+          setIsLoading(false);
         }
-        setTools(loadedTools.reverse());
-        setIsLoading(false);
-      });
+      );
 
       return () => unsubscribe();
     }
@@ -126,10 +140,11 @@ export default function AdminPage() {
       setDialogOpen(false);
       setEditingTool(null);
     } catch (error: any) {
+      console.error("Failed to save tool:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "An error occurred. Please try again.",
+        title: "Error Saving Tool",
+        description: error.message || "An unexpected error occurred. This could be a permission issue.",
       });
     }
   };
@@ -143,10 +158,11 @@ export default function AdminPage() {
       await remove(ref(db, `tools/${toolId}`));
       toast({ title: "Success", description: "Tool deleted successfully." });
     } catch (error: any) {
+       console.error("Failed to delete tool:", error);
        toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to delete tool. Please try again.",
+        title: "Error Deleting Tool",
+        description: error.message || "Failed to delete tool. This could be a permission issue.",
       });
     }
   };
