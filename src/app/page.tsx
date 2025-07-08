@@ -65,19 +65,12 @@ export default async function HomePage() {
 
       <footer className="bg-card/50 border-t">
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-muted-foreground">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-muted-foreground">
             <div className="text-center md:text-left">
               <h4 className="font-bold text-lg text-foreground mb-2">RepoSource</h4>
               <p className="text-sm">
                 A curated collection of open-source software and apps, built for the modern developer community.
               </p>
-            </div>
-            <div className="text-center">
-              <h4 className="font-bold text-lg text-foreground mb-2">Navigate</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/" className="hover:text-accent transition-colors">Home</Link></li>
-                <li><Link href="/admin" className="hover:text-accent transition-colors">Admin Login</Link></li>
-              </ul>
             </div>
             <div className="text-center md:text-right">
               <h4 className="font-bold text-lg text-foreground mb-2">Connect</h4>
