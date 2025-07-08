@@ -9,6 +9,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from "@/components/ui/carousel";
 import type { Banner } from "@/types";
 
@@ -54,6 +56,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           </CarouselItem>
         ))}
       </CarouselContent>
+      <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-black/50 hover:bg-black/75 text-white border-none" />
+      <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-black/50 hover:bg-black/75 text-white border-none" />
     </Carousel>
   );
 }
