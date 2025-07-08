@@ -25,6 +25,7 @@ const formSchema = z.object({
   tags: z.string().min(1, { message: "At least one tag is required." }),
   link: z.string().url({ message: "Please enter a valid URL." }),
   imageUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  details: z.string().optional(),
 });
 
 type ToolFormValues = z.infer<typeof formSchema>;
@@ -45,6 +46,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
       tags: "",
       link: "",
       imageUrl: "",
+      details: "",
     },
   });
 
@@ -54,6 +56,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
         ...initialData,
         tags: initialData.tags.join(", "),
         imageUrl: initialData.imageUrl || "",
+        details: initialData.details || "",
       });
     } else {
         form.reset({
@@ -63,6 +66,7 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
             tags: "",
             link: "",
             imageUrl: "",
+            details: "",
         });
     }
   }, [initialData, form]);
@@ -145,6 +149,23 @@ export function ToolForm({ initialData, onSubmit, onClose }: ToolFormProps) {
               <FormLabel>Image URL (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="https://example.com/image.png" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="details"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Details (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Detailed information about the tool, its history, features, etc. This will be shown on the tool's dedicated page."
+                  className="h-32" 
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -6,4 +6,5 @@ export interface Tool {
   tags: string[];
   link: string;
   imageUrl?: string;
+  details?: string;
 }

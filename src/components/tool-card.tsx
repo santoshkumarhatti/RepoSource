@@ -20,37 +20,43 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool }: ToolCardProps) {
+  const handleVisitClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent the parent Link from navigating
+    e.preventDefault();
+    window.open(tool.link, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <Card className="flex flex-col h-full bg-card hover:shadow-lg hover:shadow-accent/10 transition-shadow duration-300 border-border/50 overflow-hidden group">
-      <div className="relative w-full aspect-video bg-muted overflow-hidden">
-        <Image
-          src={tool.imageUrl || "https://placehold.co/600x400.png"}
-          alt={tool.name}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          data-ai-hint="abstract technology"
-        />
-      </div>
-      <CardHeader>
-        <CardTitle>{tool.name}</CardTitle>
-        <CardDescription className="pt-1">{tool.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <div className="flex flex-wrap gap-2">
-          {tool.tags.map((tag, index) => (
-            <Badge key={`${tag}-${index}`} variant="secondary">{tag}</Badge>
-          ))}
+    <Link href={`/tool/${tool.id}`} className="block h-full text-card-foreground no-underline">
+      <Card className="flex flex-col h-full bg-card hover:shadow-lg hover:shadow-accent/10 transition-shadow duration-300 border-border/50 overflow-hidden group">
+        <div className="relative w-full aspect-video bg-muted overflow-hidden">
+          <Image
+            src={tool.imageUrl || "https://placehold.co/600x400.png"}
+            alt={tool.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            data-ai-hint="abstract technology"
+          />
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center">
-        <Badge variant="outline">{tool.category}</Badge>
-        <Button asChild variant="ghost" size="sm" className="hover:bg-accent/20">
-          <Link href={tool.link} target="_blank" rel="noopener noreferrer">
+        <CardHeader>
+          <CardTitle>{tool.name}</CardTitle>
+          <CardDescription className="pt-1">{tool.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-grow">
+          <div className="flex flex-wrap gap-2">
+            {tool.tags.map((tag, index) => (
+              <Badge key={`${tag}-${index}`} variant="secondary">{tag}</Badge>
+            ))}
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between items-center">
+          <Badge variant="outline">{tool.category}</Badge>
+          <Button onClick={handleVisitClick} variant="ghost" size="sm" className="hover:bg-accent/20">
             Visit Site
             <ArrowUpRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+          </Button>
+        </CardFooter>
+      </Card>
+    </Link>
   );
 }
