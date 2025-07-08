@@ -20,7 +20,7 @@ async function getSoftwareList(): Promise<Software[]> {
         ...data[key],
         tags: Array.isArray(data[key].tags) ? data[key].tags : [],
       }));
-      return loadedSoftware;
+      return loadedSoftware.reverse();
     }
     return [];
   } catch (error) {
