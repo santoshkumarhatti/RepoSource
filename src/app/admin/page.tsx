@@ -44,6 +44,15 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!db) {
+      toast({
+        variant: "destructive",
+        title: "Database Error",
+        description: "Firebase is not configured. Please check environment variables.",
+      });
+      setIsLoading(false);
+      return;
+    }
     const toolsRef = ref(db, "tools/");
     const unsubscribe = onValue(toolsRef, (snapshot) => {
       const data = snapshot.val();
@@ -58,14 +67,22 @@ export default function AdminPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   const handleSignOut = async () => {
+    if (!auth) {
+      toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Auth is not configured."});
+      return;
+    }
     await auth.signOut();
     router.push('/');
   };
 
   const handleFormSubmit = async (values: Omit<Tool, "id" | "tags"> & { tags: string }) => {
+    if (!db) {
+      toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
+      return;
+    }
     const toolData = {
       ...values,
       tags: values.tags.split(',').map(tag => tag.trim()).filter(Boolean),
@@ -94,6 +111,10 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (toolId: string) => {
+    if (!db) {
+      toast({ variant: "destructive", title: "Configuration Error", description: "Firebase Database is not configured."});
+      return;
+    }
     try {
       await remove(ref(db, `tools/${toolId}`));
       toast({ title: "Success", description: "Tool deleted successfully." });

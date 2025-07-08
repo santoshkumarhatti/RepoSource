@@ -16,6 +16,10 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      router.push("/login");
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);

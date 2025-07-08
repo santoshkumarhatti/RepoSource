@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getDatabase } from "firebase/database";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getDatabase, type Database } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,8 +12,19 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getDatabase(app);
+const isConfigured = firebaseConfig.apiKey && firebaseConfig.databaseURL;
+
+const app: FirebaseApp | null = isConfigured
+  ? getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig)
+  : null;
+
+const auth: Auth | null = app ? getAuth(app) : null;
+const db: Database | null = app ? getDatabase(app) : null;
+
+if (!isConfigured) {
+  console.warn("Firebase configuration is missing or incomplete. Functionality will be limited.");
+}
 
 export { app, auth, db };

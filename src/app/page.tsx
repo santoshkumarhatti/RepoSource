@@ -6,6 +6,10 @@ import { Github, Code } from "lucide-react";
 import Link from "next/link";
 
 async function getTools(): Promise<Tool[]> {
+  if (!db) {
+    console.warn("Firebase is not configured. Returning empty list of tools.");
+    return [];
+  }
   try {
     const toolsRef = ref(db, "tools");
     const snapshot = await get(toolsRef);
