@@ -45,7 +45,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               rel="noopener noreferrer"
               draggable={false}
             >
-              <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg">
+              <div className="relative aspect-[4/1] w-full overflow-hidden rounded-lg">
                 <Image
                   src={banner.imageUrl}
                   alt="Promotional banner"
