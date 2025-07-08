@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { ref, onValue, remove, set, push, update } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
 import type { Tool } from "@/types";
@@ -33,41 +35,63 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const router = useRouter();
+
   const [tools, setTools] = useState<Tool[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTool, setEditingTool] = useState<Tool | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
-    if (!db) {
-      toast({
-        variant: "destructive",
-        title: "Database Error",
-        description: "Firebase is not configured. Please check environment variables.",
-      });
-      setIsLoading(false);
+    if (!auth) {
+      router.push("/login");
       return;
     }
-    const toolsRef = ref(db, "tools/");
-    const unsubscribe = onValue(toolsRef, (snapshot) => {
-      const data = snapshot.val();
-      const loadedTools: Tool[] = [];
-      if (data) {
-        for (const key in data) {
-          loadedTools.push({ id: key, ...data[key] });
-        }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setAuthLoading(false);
+      } else {
+        router.push("/login");
       }
-      setTools(loadedTools.reverse());
-      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [router]);
+
+  useEffect(() => {
+    if (user) {
+      if (!db) {
+        toast({
+          variant: "destructive",
+          title: "Database Error",
+          description: "Firebase is not configured. Please check environment variables.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      const toolsRef = ref(db, "tools/");
+      const unsubscribe = onValue(toolsRef, (snapshot) => {
+        const data = snapshot.val();
+        const loadedTools: Tool[] = [];
+        if (data) {
+          for (const key in data) {
+            loadedTools.push({ id: key, ...data[key] });
+          }
+        }
+        setTools(loadedTools.reverse());
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user, toast]);
 
   const handleSignOut = async () => {
     if (!auth) {
@@ -135,6 +159,27 @@ export default function AdminPage() {
   const openAddDialog = () => {
     setEditingTool(null);
     setDialogOpen(true);
+  }
+
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="w-full max-w-4xl space-y-4 p-8">
+            <div className="flex justify-between">
+              <Skeleton className="h-10 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-28" />
+                <Skeleton className="h-10 w-28" />
+              </div>
+            </div>
+            <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
