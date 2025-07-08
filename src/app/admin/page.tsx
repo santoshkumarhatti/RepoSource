@@ -90,14 +90,16 @@ export default function AdminPage() {
           setTools(loadedTools.reverse());
           setIsLoading(false);
         },
-        (error) => {
+        (error: any) => {
           console.error("Firebase read error:", error);
+          let description = error.message || "Could not load tools. Check your database rules and configuration.";
+          if (error.message && error.message.includes('PERMISSION_DENIED')) {
+            description = "Permission Denied. Please update your Firebase Realtime Database rules to allow reads for authenticated users.";
+          }
           toast({
             variant: "destructive",
             title: "Database Error",
-            description:
-              error.message ||
-              "Could not load tools. Check your database rules and configuration.",
+            description: description,
           });
           setIsLoading(false);
         }
@@ -141,10 +143,14 @@ export default function AdminPage() {
       setEditingTool(null);
     } catch (error: any) {
       console.error("Failed to save tool:", error);
+      let description = error.message || "An unexpected error occurred.";
+      if (error.message && error.message.includes('PERMISSION_DENIED')) {
+        description = "Permission Denied. Please update your Firebase Realtime Database rules to allow writes for authenticated users.";
+      }
       toast({
         variant: "destructive",
         title: "Error Saving Tool",
-        description: error.message || "An unexpected error occurred. This could be a permission issue.",
+        description: description,
       });
     }
   };
@@ -159,10 +165,14 @@ export default function AdminPage() {
       toast({ title: "Success", description: "Tool deleted successfully." });
     } catch (error: any) {
        console.error("Failed to delete tool:", error);
+       let description = error.message || "Failed to delete tool.";
+       if (error.message && error.message.includes('PERMISSION_DENIED')) {
+         description = "Permission Denied. Please update your Firebase Realtime Database rules to allow deletes for authenticated users.";
+       }
        toast({
         variant: "destructive",
         title: "Error Deleting Tool",
-        description: error.message || "Failed to delete tool. This could be a permission issue.",
+        description: description,
       });
     }
   };
