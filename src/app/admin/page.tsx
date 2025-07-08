@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { ref, onValue, remove, set, push, update } from "firebase/database";
+import { ref, onValue, remove, set } from "firebase/database";
 import { db, auth } from "@/lib/firebase";
 import type { Software } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,17 @@ export default function AdminPage() {
     await auth.signOut();
     router.push('/');
   };
+  
+  const slugify = (name: string) => {
+    return name
+      .toLowerCase()
+      // Remove characters that are not word characters (letters, numbers, underscore), whitespace, or a hyphen.
+      .replace(/[^\w\s-]/g, "")
+      // Replace whitespace, underscores, or repeated hyphens with a single hyphen.
+      .replace(/[\s_-]+/g, "-")
+      // Remove any hyphens from the start or end of the string.
+      .replace(/^-+|-+$/g, "");
+  };
 
   const handleFormSubmit = async (values: Omit<Software, "id" | "tags"> & { tags: string }) => {
     if (!db) {
@@ -135,15 +146,33 @@ export default function AdminPage() {
       tags: values.tags.split(',').map(tag => tag.trim()).filter(Boolean),
     };
 
+    const newId = slugify(values.name);
+
+    if (!newId) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Name",
+        description: "Software name must contain valid characters.",
+      });
+      return;
+    }
+
     try {
       if (editingSoftware) {
-        const softwareRef = ref(db, `tools/${editingSoftware.id}`);
-        await update(softwareRef, softwareData);
+        const oldId = editingSoftware.id;
+        // If the name changed, the ID (slug) will change. We need to remove the old entry.
+        if (oldId !== newId) {
+          await remove(ref(db, `tools/${oldId}`));
+        }
+        // Set the data at the new ID. This works for both updating an existing entry
+        // (if name didn't change) and creating a new one (if name changed).
+        await set(ref(db, `tools/${newId}`), softwareData);
         toast({ title: "Success", description: "Software updated successfully." });
       } else {
-        const softwareListRef = ref(db, "tools");
-        const newSoftwareRef = push(softwareListRef);
-        await set(newSoftwareRef, softwareData);
+        // For new software, just set the data at the generated ID.
+        // This will overwrite any existing entry with the same name/ID.
+        const softwareRef = ref(db, `tools/${newId}`);
+        await set(softwareRef, softwareData);
         toast({ title: "Success", description: "Software added successfully." });
       }
       setEditingSoftware(null);
