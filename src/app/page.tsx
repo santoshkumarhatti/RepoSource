@@ -11,7 +11,7 @@ async function getSoftwareList(): Promise<Software[]> {
     return [];
   }
   try {
-    const softwareRef = ref(db, "tools");
+    const softwareRef = ref(db, "software");
     const snapshot = await get(softwareRef);
     if (snapshot.exists()) {
       const data = snapshot.val();
@@ -48,7 +48,7 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 pt-2 pb-16 md:pb-24">
+        <section className="container mx-auto px-4 pb-16 md:pb-24 pt-2">
           <SoftwareList initialSoftware={software} />
         </section>
       </main>

@@ -16,7 +16,7 @@ async function getSoftware(id: string): Promise<Software | null> {
     return null;
   }
   try {
-    const softwareRef = ref(db, `tools/${id}`);
+    const softwareRef = ref(db, `software/${id}`);
     const snapshot = await get(softwareRef);
     if (snapshot.exists()) {
       const data = snapshot.val();

@@ -76,7 +76,7 @@ export default function AdminPage() {
         setIsSoftwareLoading(false);
         return;
       }
-      const softwareRef = ref(db, "tools/");
+      const softwareRef = ref(db, "software/");
       const unsubscribeSoftware = onValue(
         softwareRef,
         (snapshot) => {
@@ -138,9 +138,9 @@ export default function AdminPage() {
     }
     try {
       if (editingSoftware && editingSoftware.id !== newId) {
-        await remove(ref(db, `tools/${editingSoftware.id}`));
+        await remove(ref(db, `software/${editingSoftware.id}`));
       }
-      await set(ref(db, `tools/${newId}`), softwareData);
+      await set(ref(db, `software/${newId}`), softwareData);
       toast({ title: "Success", description: `Software ${editingSoftware ? 'updated' : 'added'} successfully.` });
       setEditingSoftware(null);
       setIsSoftwareFormOpen(false);
@@ -153,7 +153,7 @@ export default function AdminPage() {
   const handleDeleteSoftware = async (softwareId: string) => {
     if (!db) return;
     try {
-      await remove(ref(db, `tools/${softwareId}`));
+      await remove(ref(db, `software/${softwareId}`));
       toast({ title: "Success", description: "Software deleted successfully." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error Deleting Software", description: "Failed to delete software." });
